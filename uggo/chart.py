@@ -16,7 +16,7 @@ class Chart(ABC):
     max_value: float = field(init=False)
 
     def __post_init__(self):
-        self.max_value = max(self.data) if self.data else 0
+        self.max_value = max(self.data) if (self.data and all(isinstance(d, int) for d in self.data)) else 0
 
     @abstractmethod
     def draw_data(self, draw):
@@ -45,21 +45,22 @@ class Chart(ABC):
         draw.line([(self.margin, self.height - self.margin),
                    (self.width - self.margin, self.height - self.margin)], fill='black', width=2)
 
-    def draw_labels(self, draw, image):
+    def draw_labels(self, draw, image, skip_y_labels=False):
         label_font = ImageFont.truetype("arial.ttf", 12)
         axis_font = ImageFont.truetype("arial.ttf", 14)
 
         # Draw y-axis labels
-        for i in range(5):
-            y = self.height - self.margin - i * (self.height - 2 * self.margin) / 4
-            value = int(i * self.max_value / 4)
-            draw.text((self.margin - 5, y), str(value), fill='black', font=label_font, anchor='rm')
+        if not skip_y_labels:
+            for i in range(5):
+                y = self.height - self.margin - i * (self.height - 2 * self.margin) / 4
+                value = int(i * self.max_value / 4)
+                draw.text((self.margin - 5, y), str(value), fill='black', font=label_font, anchor='rm')
 
-        # Draw x-axis label
+        # Draw x-axis title
         x_label_pos = (self.width / 2, self.height - 10)
         draw.text(x_label_pos, self.x_label, fill='black', font=axis_font, anchor='ms')
 
-        # Draw y-axis label
+        # Draw y-axis title
         y_label_pos = (10, self.height / 2)
         txt_img = Image.new('RGBA', axis_font.getsize(self.y_label), (255, 255, 255, 0))
         txt_draw = ImageDraw.Draw(txt_img)
